@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Prism
 
-## Getting Started
+Context-aware AI pull request reviewer built using GitHub Apps, BullMQ, Redis, PostgreSQL, vector embeddings, and Gemini.
 
-First, run the development server:
+PRism is an AI code review platform that goes beyond reading diffs — it indexes your entire codebase into a vector store, retrieves the existing patterns relevant to each pull request, and uses that context to generate inline review comments, a risk score, and a merge-impact analysis, all posted directly on GitHub. Built with Next.js, BullMQ, pgvector, and Gemini, it answers the question every other review bot ignores: not just what changed, but does this fit, and is it safe to merge.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+See the full spectrum of every pull request.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- GitHub App integration
+- Automated PR reviews
+- Repository-aware code retrieval
+- Embedding cache by base commit
+- Inline GitHub review comments
+- Real-time review status updates
+- Review history dashboard
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+GitHub
+→ Webhook
+→ BullMQ Queue
+→ Worker
+→ Embeddings
+→ Context Retrieval
+→ Gemini
+→ GitHub Review Comments
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js
+- TypeScript
+- Prisma
+- PostgreSQL
+- Redis
+- BullMQ
+- pgvector
+- Gemini

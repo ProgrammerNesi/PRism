@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  githubId      String?        @unique
+
+  name          String?
+  email         String?        @unique
+
+  image         String?
+  emailVerified DateTime?
+
+  avatarUrl     String?
+  createdAt     DateTime       @default(now())
+
+  accounts      Account[]
+  installations Installation[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Installation {
+  id                   String       @id @default(cuid())
+  githubInstallationId String       @unique
+  accountLogin         String
+  accountType          String
+  userId               String
+  createdAt            DateTime     @default(now())
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repositories         Repository[]
+}
+
+model Repository {
+  id                String        @id @default(cuid())
+  githubRepoId      String
+  installationId    String
+  owner             String
+  name              String
+  fullName          String        @unique
+  isActive          Boolean       @default(true)
+  lastIndexedCommit String?
+  lastIndexedAt     DateTime?
+  createdAt         DateTime      @default(now())
+  pullRequests      PullRequest[]
+  installation      Installation  @relation(fields: [installationId], references: [id], onDelete: Cascade)
+}
+
+model PullRequest {
+  id             String      @id @default(cuid())
+  repositoryId   String
+  repository     Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  githubPrNumber Int
+  title          String
+  authorLogin    String
+  headCommitSha  String
+  baseCommitSha  String
+  status         PRStatus    @default(PENDING)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  reviews         Review[]
+  jobs           Job[]
+
+  @@unique([repositoryId, githubPrNumber])
+}
+
+model Review {
+  id             String          @id @default(cuid())
+  pullRequestId  String 
+  headCommitSha String
+  baseCommitSha String         
+  summary        String
+  githubReviewId String
+  createdAt      DateTime        @default(now())
+  pullRequest    PullRequest     @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  comments       ReviewComment[]
+}
+
+model ReviewComment {
+  id        String          @id @default(cuid())
+  reviewId  String
+  filePath  String
+  line      Int
+  body      String
+  severity  CommentSeverity @default(INFO)
+  createdAt DateTime        @default(now())
+  review    Review          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id            String      @id @default(cuid())
+  pullRequestId String
+  status        JobStatus   @default(QUEUED)
+  attempts      Int         @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  errorMessage  String?
+  createdAt     DateTime    @default(now())
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+
+enum PRStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum CommentSeverity {
+  INFO
+  WARNING
+  ERROR
+}
+
+enum JobStatus {
+  QUEUED
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+
+model Embedding {
+  id           String                      @id @default(cuid())
+  repositoryId String
+  commitSha    String
+  filePath     String
+  startLine    Int
+  endLine      Int
+  content      String                      @db.Text
+  language     String
+  embedding    Unsupported("vector(384)")?
+
+  @@index([repositoryId, commitSha])
+}
