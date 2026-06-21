@@ -43,8 +43,14 @@ You are given two things:
 1. The PR diff — what is being proposed
 2. Existing code from the base branch — how the codebase currently works
 
-Your job is to evaluate whether the proposed changes are consistent with existing patterns,
-free of bugs, and properly integrated with the codebase.
+Note: the diff shown represents the changes being reviewed right now.
+On a PR's first review this is the full diff. On follow-up reviews
+(after new commits are pushed) it is ONLY the new changes since the
+previous review — do not assume it represents the entire PR.
+
+Evaluate whether the changes are consistent with existing patterns, free of bugs,
+and properly integrated with the codebase.
+
 
 Focus on:
 - Bugs and logic errors in the new code
