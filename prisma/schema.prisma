@@ -87,19 +87,20 @@ model Repository {
 }
 
 model PullRequest {
-  id             String      @id @default(cuid())
+  id             String          @id @default(cuid())
   repositoryId   String
-  repository     Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repository     Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   githubPrNumber Int
   title          String
   authorLogin    String
   headCommitSha  String
   baseCommitSha  String
-  status         PRStatus    @default(PENDING)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  reviews         Review[]
+  status         PRStatus        @default(PENDING)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  reviews        Review[]
   jobs           Job[]
+  impactAnalysis ImpactAnalysis?
 
   @@unique([repositoryId, githubPrNumber])
 }
@@ -173,4 +174,25 @@ model Embedding {
   embedding    Unsupported("vector(384)")?
 
   @@index([repositoryId, commitSha])
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model ImpactAnalysis {
+  id              String      @id @default(cuid())
+  pullRequestId   String      @unique
+  pullRequest     PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  isSafeToMerge   Boolean
+  riskLevel       RiskLevel
+  impactSummary   String      @db.Text
+  breakingChanges String      @db.Text
+  affectedAreas   String      @db.Text
+  analyzedHeadSha String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }

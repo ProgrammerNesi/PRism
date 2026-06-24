@@ -1,7 +1,7 @@
 import { ReviewJobData } from "../../lib/queue";
 import { prisma } from "../../lib/prisma";
 import { getInstallationOctokit, getInstallationToken } from "./auth";
-import { getFullPRDiff, getIncrementalDiff, ChangedFile } from "./diff"; 
+import { getFullPRDiff, getIncrementalDiff, ChangedFile } from "./diff";
 import { cloneRepository } from "./clone";
 import { chunkRepository } from "./chunk";
 import { embedAndStoreChunks, isAlreadyIndexed } from "./embed";
@@ -9,6 +9,8 @@ import { retrieveRelevantContext } from "./retrieve";
 import { generateReview } from "./review";
 import { postReviewToGitHub } from "./post";
 import { publishStatus } from "./status";
+import { generateImpactAnalysis } from "./impact";
+
 
 export async function runReviewPipeline(
   data: ReviewJobData,
@@ -101,17 +103,40 @@ export async function runReviewPipeline(
     // Retrieval and review both use reviewDiff — only the new changes
     await publish("RETRIEVING", "Finding relevant existing code patterns...");
     const contextChunks = await retrieveRelevantContext(reviewDiff, repositoryId, baseCommitSha);
+    const fullContextChunks = await retrieveRelevantContext(
+      fullDiff,
+      repositoryId,
+      baseCommitSha
+    );
+    await publish("REVIEWING", "Generating review and impact analysis...");
 
-    await publish("REVIEWING", "Generating review with Gemini...");
-    const reviewResult = await generateReview(reviewDiff, contextChunks);
+    // Run both in parallel — they use the same inputs and are independent
+    const [reviewResult, impactResult] = await Promise.all([
+      generateReview(reviewDiff, contextChunks),
+      generateImpactAnalysis(fullDiff, fullContextChunks),
+    ]);
 
-    // Posting validates line numbers against fullDiff, not reviewDiff —
-    // GitHub needs the line position relative to the whole PR
-    await publish("POSTING", `Posting ${reviewResult.comments.length} comments to GitHub...`);
-    const githubReviewId = await postReviewToGitHub(
-      octokit, owner, repoName, prNumber, headCommitSha, reviewResult, fullDiff
+    console.log(`Risk level: ${impactResult.riskLevel}`);
+    console.log(`Safe to merge: ${impactResult.isSafeToMerge}`);
+    console.log(`Breaking changes: ${impactResult.breakingChanges.length}`);
+    console.log(`Affected areas: ${impactResult.affectedAreas.join(", ")}`);
+
+    await publish(
+      "POSTING",
+      `Posting ${reviewResult.comments.length} comments to GitHub...`
     );
 
+    const githubReviewId = await postReviewToGitHub(
+      octokit,
+      owner,
+      repoName,
+      prNumber,
+      headCommitSha,
+      reviewResult,
+      fullDiff
+    );
+
+    // Save review
     await prisma.review.create({
       data: {
         pullRequestId,
@@ -121,18 +146,44 @@ export async function runReviewPipeline(
         githubReviewId,
         comments: {
           create: reviewResult.comments.map((c) => ({
-            filePath: c.filePath, line: c.line, body: c.body, severity: c.severity,
+            filePath: c.filePath,
+            line: c.line,
+            body: c.body,
+            severity: c.severity,
           })),
         },
       },
     });
+
+    // Upsert impact analysis — always reflects the latest run.
+    // One record per PR, updated each time a new commit is pushed.
+    await prisma.impactAnalysis.upsert({
+      where: { pullRequestId },
+      update: {
+        isSafeToMerge: impactResult.isSafeToMerge,
+        riskLevel: impactResult.riskLevel,
+        impactSummary: impactResult.impactSummary,
+        breakingChanges: JSON.stringify(impactResult.breakingChanges),
+        affectedAreas: JSON.stringify(impactResult.affectedAreas),
+        analyzedHeadSha: headCommitSha,
+      },
+      create: {
+        pullRequestId,
+        isSafeToMerge: impactResult.isSafeToMerge,
+        riskLevel: impactResult.riskLevel,
+        impactSummary: impactResult.impactSummary,
+        breakingChanges: JSON.stringify(impactResult.breakingChanges),
+        affectedAreas: JSON.stringify(impactResult.affectedAreas),
+        analyzedHeadSha: headCommitSha,
+      },
+    });
+
     await publish(
       "COMPLETED",
-      `Review complete — ${reviewResult.comments.length} comments posted`
+      `Review complete · ${reviewResult.comments.length} comments · ${impactResult.riskLevel} risk`
     );
-
-    console.log(`Pipeline complete for PR #${prNumber}`);
-  } finally {
+  }
+  finally {
     await cleanup();
   }
 }
