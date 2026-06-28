@@ -55,7 +55,7 @@ export default function ImpactAnalysisCard({ impact }: { impact: ImpactAnalysis 
           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>
             Merge Risk Assessment
           </span>
-        </div
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* Safe to merge badge */}
           <span

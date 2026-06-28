@@ -92,5 +92,5 @@ export async function isAlreadyIndexed(
     WHERE "repositoryId" = ${repositoryId}
     AND "commitSha" = ${baseCommitSha}
   `;
-  return result[0].count > 0n;
+  return Number(result[0].count) > 0;
 }
