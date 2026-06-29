@@ -5,8 +5,19 @@ import { ReviewJobData } from "../lib/queue";
 import { runReviewPipeline } from "./pipeline/index";
 import { getEmbedder } from "./pipeline/embed";
 import dotenv from "dotenv";
+import http from "http";
 
 dotenv.config({ path: "./.env" });
+
+const port = Number(process.env.PORT || 10000);
+
+http.createServer((_req, res) => {
+  res.writeHead(200);
+  res.end("PRism Worker Running");
+}).listen(port, () => {
+  console.log(`Health server listening on ${port}`);
+});
+
 
 async function startWorker() {
   // Download and cache the sentence transformer model before
