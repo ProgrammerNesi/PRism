@@ -87,7 +87,7 @@ export async function generateReview(
   const prompt = buildPrompt(changedFiles, contextChunks);
 
   const result = await genAI.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3.1-flash-lite",
     contents: prompt,
     config: {
       systemInstruction: SYSTEM_PROMPT,
