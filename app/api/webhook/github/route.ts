@@ -259,6 +259,11 @@ async function handlePullRequest(payload: any) {
     baseCommitSha,
     installationId: String(installation.id),
   };
+  try {
+    await fetch(process.env.WORKER_URL!);
+  } catch (err) {
+    console.warn("Failed to wake worker:", err);
+  }
 
   await reviewQueue.add("review-pr", jobData, { jobId: job.id });
 
