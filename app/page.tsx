@@ -60,7 +60,7 @@ export default async function Home() {
       <main style={{ position: "relative", zIndex: 1 }}>
         <section style={{ maxWidth: 720, margin: "0 auto", padding: "112px 24px 80px", textAlign: "center" }}>
 
-          <div className="animate-fade-up inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs mb-8" style={{ color: "var(--text-secondary)" }}>
+          <div className="animate-fade-up inline-flex items-center gap-2 rounded-full px-3.5 py-4 text-xs mb-8" style={{ color: "var(--text-secondary)" }}>
 
           </div>
 
@@ -99,14 +99,13 @@ export default async function Home() {
             style={{
               fontSize: 15,
               color: "var(--text-secondary)",
-              maxWidth: 460,
+              maxWidth: 530,
               margin: "0 auto 40px",
               lineHeight: 1.7,
               animationDelay: "0.1s",
             }}
           >
-            PRism indexes your codebase, reviews each pull request against existing
-            patterns, and scores merge risk — posted directly on GitHub.
+            PRism indexes your codebase, reviews every pull request against existing implementation patterns, and posts AI reviews directly on GitHub.
           </p>
 
           <div className="animate-fade-up" style={{ animationDelay: "0.14s" }}>
@@ -118,8 +117,8 @@ export default async function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             {[
               { Icon: GitPullRequest, title: "Context-aware review", body: "Comments grounded in how your codebase already works, not just the diff." },
-              { Icon: ShieldCheck, title: "Risk scoring", body: "Every review run is scored 0–100 so you know how much attention it needs." },
-              { Icon: Network, title: "Merge impact", body: "See what areas of the codebase a change touches before it ships." },
+              { Icon: ShieldCheck, title: "PRism Constitution", body: "Enforce rules written in plain English through PRISM.md on every pull request. (coming soon)" },
+              { Icon: Network, title: "Merge impact dashboard", body: "See what areas of the codebase a change touches before it ships." },
             ].map(({ Icon, title, body }, i) => (
               <div
                 key={title}
