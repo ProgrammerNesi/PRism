@@ -24,6 +24,7 @@ model User {
   accounts      Account[]
   installations Installation[]
   sessions      Session[]
+  apiKeys ApiKey[]
 }
 
 model Account {
@@ -195,4 +196,16 @@ model ImpactAnalysis {
   analyzedHeadSha String
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  hashedKey  String    @unique
+  userId     String
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
