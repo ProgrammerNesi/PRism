@@ -95,6 +95,13 @@ export async function runReviewPipeline(
       const chunks = chunkRepository(repoPath);
       if (chunks.length > 0) {
         await embedAndStoreChunks(chunks, repositoryId, baseCommitSha);
+        await prisma.repository.update({
+          where: { id: repositoryId },
+          data: {
+            lastIndexedCommit: baseCommitSha,
+            lastIndexedAt: new Date(),
+          },
+        });
       }
     } else {
       await publish("INDEXING", `Cache hit for base ${baseCommitSha.slice(0, 7)}`);
