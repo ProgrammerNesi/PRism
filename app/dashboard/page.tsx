@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
 import { JobStatus } from "@/hooks/useJobStatus";
-import { GitPullRequest, Plus, Inbox } from "lucide-react";
+import { GitPullRequest, Plus, Inbox, Key } from "lucide-react";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -88,19 +88,40 @@ export default async function Dashboard() {
         </div>
 
         {/* Right side */}
-        <a
-          href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_NAME}/installations/new`}
-          className="btn-primary inline-flex items-center gap-2 rounded-xl text-white"
-          style={{
-            padding: "10px 16px",
-            fontSize: 13,
-            fontWeight: 500,
-            textDecoration: "none",
-          }}
-        >
-          <Plus size={14} strokeWidth={2.5} />
-          Connect repository
-        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Link
+            href="/dashboard/api-keys"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 14px",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 500,
+              textDecoration: "none",
+              color: "var(--text-secondary)",
+              transition: "color 0.15s, background 0.15s",
+            }}
+            className="hover:text-[var(--text-primary)] hover:bg-white/[0.04]"
+          >
+            <Key size={14} strokeWidth={1.75} />
+            API Keys
+          </Link>
+          <a
+            href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_NAME}/installations/new`}
+            className="btn-primary inline-flex items-center gap-2 rounded-xl text-white"
+            style={{
+              padding: "10px 16px",
+              fontSize: 13,
+              fontWeight: 500,
+              textDecoration: "none",
+            }}
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            Connect repository
+          </a>
+        </div>
       </div>
 
       {repositories.length === 0 ? (
