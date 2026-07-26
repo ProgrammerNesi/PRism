@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseUnifiedDiff } from "@/worker/mcp/parseUnifiedDiff";
 import { retrieveRelevantContext } from "@/worker/pipeline/retrieve";
 import { generateReview } from "@/worker/pipeline/review";
+import { checkAgainstPatterns } from "@/worker/mcp/patterns";
 export async function POST(req: NextRequest) {
     try {
         const authHeader = req.headers.get("authorization");
@@ -26,7 +27,9 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { repo, prDiff } = await req.json();
+        const body = await req.json();
+        const { repo, prDiff } = body;
+        console.log("Received request",body);
         if (!repo || !prDiff) {
             return NextResponse.json(
                 { error: "Missing repo or prDiff" },
@@ -53,12 +56,12 @@ export async function POST(req: NextRequest) {
 
         console.log("Retrieved Context:");
         console.log(contextChunks);
-        const reviewResult = await generateReview(
+        const result = await checkAgainstPatterns(
             changedFiles,
             contextChunks
         );
 
-        return NextResponse.json(reviewResult);
+        return NextResponse.json(result);
         if (!repository) {
             return NextResponse.json(
                 {
