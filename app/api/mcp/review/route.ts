@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
         // 4. Run review pipeline
         // 5. Return review
         const repository = await resolveRepository(user.id, repo);
+        if (!repository) {
+            throw new Error("Repository not found");
+        }
+
         console.log("Repository:", repository);
         console.log(repository.lastIndexedCommit);
         const contextChunks = await retrieveRelevantContext(
@@ -59,23 +63,6 @@ export async function POST(req: NextRequest) {
         );
 
         return NextResponse.json(reviewResult);
-        if (!repository) {
-            return NextResponse.json(
-                {
-                    error: "Repository not found or not authorized.",
-                },
-                { status: 403 }
-            );
-        }
-
-        return NextResponse.json({
-            status: "success",
-            message: "PRism backend reached successfully.",
-            data: {
-                repo,
-                diffLength: prDiff.length,
-            },
-        });
     } catch (error) {
         console.error(error);
 
