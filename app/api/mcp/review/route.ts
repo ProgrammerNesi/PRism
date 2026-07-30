@@ -44,7 +44,14 @@ export async function POST(req: NextRequest) {
         // 5. Return review
         const repository = await resolveRepository(user.id, repo);
         if (!repository) {
-            throw new Error("Repository not found");
+            return NextResponse.json(
+                {
+                    error: "Repository not found or not authorized.",
+                },
+                {
+                    status: 403,
+                }
+            );
         }
 
         console.log("Repository:", repository);

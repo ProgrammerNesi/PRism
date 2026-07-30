@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json();
         const { repo, prDiff } = body;
-        console.log("Received request",body);
+        console.log("Received request", body);
         if (!repo || !prDiff) {
             return NextResponse.json(
                 { error: "Missing repo or prDiff" },
@@ -47,7 +47,14 @@ export async function POST(req: NextRequest) {
         // 5. Return review
         const repository = await resolveRepository(user.id, repo);
         if (!repository) {
-            throw new Error("Repository not found");
+            return NextResponse.json(
+                {
+                    error: "Repository not found or not authorized.",
+                },
+                {
+                    status: 403,
+                }
+            );
         }
 
         console.log("Repository:", repository);
