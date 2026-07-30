@@ -19,7 +19,7 @@ See the full spectrum of every pull request.
 
 ## Architecture
 
-![PRism Architecture](docs/architecture.png)
+![PRism Architecture](docs/Architecture.png)
 
 ## Stack
 
